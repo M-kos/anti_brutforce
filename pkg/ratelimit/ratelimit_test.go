@@ -9,17 +9,17 @@ import (
 
 type Stub8ucket struct {
 	store map[string]struct {
-		count uint
+		count     uint
 		startTime time.Time
 	}
 }
 
 func (b *Stub8ucket) Set(key string, count uint, startTime time.Time) error {
-  b.store[key] = struct {
-		count uint
+	b.store[key] = struct {
+		count     uint
 		startTime time.Time
-  }{
-		count: count,
+	}{
+		count:     count,
 		startTime: startTime,
 	}
 
@@ -27,93 +27,93 @@ func (b *Stub8ucket) Set(key string, count uint, startTime time.Time) error {
 }
 
 func (b *Stub8ucket) Get(key string) (uint, time.Time, error) {
-  if v, ok := b.store[key]; ok {
+	if v, ok := b.store[key]; ok {
 		return v.count, v.startTime, nil
 	}
 
 	return 0, time.Time{}, nil
 }
 
-func TestRatelimit(t *testing.T)  {
+func TestRatelimit(t *testing.T) {
 	tests := []struct {
-		title string
-	  limit uint
-		interval time.Duration
-		bucket Bucket
+		title       string
+		limit       uint
+		interval    time.Duration
+		bucket      Bucket
 		expectedErr error
-		expectedOk bool
+		expectedOk  bool
 	}{
 		{
-			title: "failed test",
-			limit: 0,
+			title:    "failed test",
+			limit:    0,
 			interval: 60 * time.Second,
 			bucket: &Stub8ucket{
 				store: map[string]struct {
-					count uint
+					count     uint
 					startTime time.Time
 				}{
 					"test": {
-						count: 0,
+						count:     0,
 						startTime: time.Now(),
 					},
 				},
 			},
 			expectedErr: nil,
-			expectedOk: false,
+			expectedOk:  false,
 		},
 		{
-			title: "successful test",
-			limit: 10,
+			title:    "successful test",
+			limit:    10,
 			interval: 60 * time.Second,
 			bucket: &Stub8ucket{
 				store: map[string]struct {
-					count uint
+					count     uint
 					startTime time.Time
 				}{
 					"test": {
-						count: 5,
+						count:     5,
 						startTime: time.Now(),
 					},
 				},
 			},
 			expectedErr: nil,
-			expectedOk: true,
+			expectedOk:  true,
 		},
 		{
-			title: "exceeded the number of requests test",
-			limit: 5,
+			title:    "exceeded the number of requests test",
+			limit:    5,
 			interval: 60 * time.Second,
 			bucket: &Stub8ucket{
 				store: map[string]struct {
-					count uint
+					count     uint
 					startTime time.Time
 				}{
 					"test": {
-						count: 5,
+						count:     5,
 						startTime: time.Now(),
 					},
 				},
 			},
 			expectedErr: nil,
-			expectedOk: false,
+			expectedOk:  false,
 		},
 		{
-			title: "successful test after interval",
-			limit: 5,
+			title:    "successful test after interval",
+			limit:    5,
 			interval: 60 * time.Second,
 			bucket: &Stub8ucket{
 				store: map[string]struct {
-					count uint
+					count     uint
 					startTime time.Time
 				}{
 					"test": {
-						count: 0,
+						count:     0,
 						startTime: time.Now().Add(-61 * time.Second),
 					},
 				},
 			},
 			expectedErr: nil,
-			expectedOk: true,
+			expectedOk:  true,
 		},
 	}
 

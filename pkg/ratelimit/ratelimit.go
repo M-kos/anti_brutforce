@@ -6,17 +6,17 @@ import (
 )
 
 type Bucket interface {
-  Get(key string) (uint, time.Time, error)
-  Set(key string, count uint, startTime time.Time) error
+	Get(key string) (uint, time.Time, error)
+	Set(key string, count uint, startTime time.Time) error
 }
 
-type rateLimiter struct {
-  limit uint
+type RateLimiter struct {
+	limit    uint
 	interval time.Duration
-	bucket Bucket
+	bucket   Bucket
 }
 
-func (rl *rateLimiter) Check(key string) (bool, error) {
+func (rl *RateLimiter) Check(key string) (bool, error) {
 	count, startTime, err := rl.bucket.Get(key)
 
 	fmt.Println("count", count, "startTime", startTime, "err", err)
@@ -33,14 +33,13 @@ func (rl *rateLimiter) Check(key string) (bool, error) {
 		return false, nil
 	}
 
-	return true, rl.bucket.Set(key, count + 1, startTime)
+	return true, rl.bucket.Set(key, count+1, startTime)
 }
 
-func NewRateLimiter(limit uint, interval time.Duration, bucket Bucket) *rateLimiter {
-  return &rateLimiter{
-    limit: limit,
-    interval: interval,
-    bucket: bucket,
-  }
+func NewRateLimiter(limit uint, interval time.Duration, bucket Bucket) *RateLimiter {
+	return &RateLimiter{
+		limit:    limit,
+		interval: interval,
+		bucket:   bucket,
+	}
 }
-
