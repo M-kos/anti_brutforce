@@ -15,3 +15,13 @@ clean:
 
 tidy:
 	go mod tidy -v
+
+generate:
+	rm -rf internal/api/pb
+	mkdir -p internal/api/pb
+
+	protoc \
+		--go_out=internal/api/pb \
+		--go-grpc_out=internal/api/pb \
+		internal/api/proto/*.proto
+		

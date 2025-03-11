@@ -28,3 +28,5 @@ Thumbs.db
 *.bak
 
 bin
+internal/api/pb
+.env
