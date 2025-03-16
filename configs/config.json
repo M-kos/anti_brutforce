@@ -2,5 +2,6 @@
   "login_number_attempts": 10,
   "password_number_attempts": 100,
   "ip_number_attempts": 1000,
+  "timeout": 60000000000,
   "grpc_port": 50051
 }

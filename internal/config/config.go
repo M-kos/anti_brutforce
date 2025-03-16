@@ -4,15 +4,17 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	LoginNumberAttempts    int `json:"login_number_attempts"`
-	PasswordNumberAttempts int `json:"password_number_attempts"`
-	IPNumberAttempts       int `json:"ip_number_attempts"`
-	GRPCPopt               int `json:"grpc_port"`
+	LoginNumberAttempts    uint          `json:"login_number_attempts"`
+	PasswordNumberAttempts uint          `json:"password_number_attempts"`
+	IPNumberAttempts       uint          `json:"ip_number_attempts"`
+	GRPCPopt               int           `json:"grpc_port"`
+	Timeout                time.Duration `json:"timeout"`
 }
 
 func LoadConfig() *Config {

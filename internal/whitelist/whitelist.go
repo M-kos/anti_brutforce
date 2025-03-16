@@ -1,29 +1,50 @@
 package whitelist
 
-type Store interface {
-	Check(key string) (bool, error)
-	Add(key string) (bool, error)
-	Remove(key string) (bool, error)
+import (
+	"context"
+	"fmt"
+	"log"
+)
+
+type WhitelistRepository interface {
+	Get(key string) (string, error)
+	Add(key string) error
+	Remove(key string) error
 }
 
 type Whitelist struct {
-	store Store
+	repository WhitelistRepository
 }
 
-func NewWhitelist(store Store) *Whitelist {
+func NewWhitelist(repository WhitelistRepository) *Whitelist {
 	return &Whitelist{
-		store: store,
+		repository: repository,
 	}
 }
 
-func (w *Whitelist) Check(key string) (bool, error) {
-	return w.store.Check(key)
+func (w *Whitelist) Check(key string) bool {
+	value, err := w.repository.Get(key)
+	if err != nil {
+		log.Printf("Whitelist: check wrong %s", err)
+	}
+
+	return value != ""
 }
 
-func (w *Whitelist) Add(key string) (bool, error) {
-	return w.store.Add(key)
+func (w *Whitelist) Add(ctx context.Context, key string) error {
+	if err := w.repository.Add(key); err != nil {
+		log.Printf("Whitelist: key not added: %s", err.Error())
+		return fmt.Errorf("not added")
+	}
+
+	return nil
 }
 
-func (w *Whitelist) Remove(key string) (bool, error) {
-	return w.store.Remove(key)
+func (w *Whitelist) Remove(ctx context.Context, key string) error {
+	if err := w.repository.Remove(key); err != nil {
+		log.Printf("Whitelist: key not removed: %s", err.Error())
+		return fmt.Errorf("not removed")
+	}
+
+	return nil
 }

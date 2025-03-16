@@ -34,6 +34,11 @@ func (b *Stub8ucket) Get(key string) (uint, time.Time, error) {
 	return 0, time.Time{}, nil
 }
 
+func (b *Stub8ucket) Remove(key string) error {
+	delete(b.store, key)
+	return nil
+}
+
 func TestRatelimit(t *testing.T) {
 	tests := []struct {
 		title       string
