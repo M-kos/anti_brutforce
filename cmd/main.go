@@ -10,6 +10,7 @@ import (
 	"github.com/M-kos/anti_brutforce/internal/blacklist"
 	bucketlist "github.com/M-kos/anti_brutforce/internal/bucket"
 	"github.com/M-kos/anti_brutforce/internal/config"
+	"github.com/M-kos/anti_brutforce/internal/db"
 	limitterservice "github.com/M-kos/anti_brutforce/internal/limitter-service"
 	stubrepo "github.com/M-kos/anti_brutforce/internal/stub-repo"
 	"github.com/M-kos/anti_brutforce/internal/whitelist"
@@ -30,7 +31,9 @@ func main() {
 func run() error {
 	conf := config.LoadConfig()
 
-	loginBucket := bucketlist.NewInMemoryucket()
+	redis := db.NewDb()
+
+	loginBucket := bucketlist.NewDbBucket(redis)
 	loginRateLimitter := ratelimit.NewRateLimiter(conf.LoginNumberAttempts, conf.Timeout, loginBucket)
 
 	passwordBucket := bucketlist.NewInMemoryucket()

@@ -30,3 +30,4 @@ Thumbs.db
 bin
 internal/api/pb
 .env
+redisdata

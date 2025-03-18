@@ -7,8 +7,8 @@ import (
 )
 
 type Limitter interface {
-	Check(key string) (bool, error)
-	Remove(key string) error
+	Check(ctx context.Context, key string) (bool, error)
+	Remove(ctx context.Context, key string) error
 }
 
 type LabelList interface {
@@ -42,7 +42,7 @@ func (c *LimitterService) Check(ctx context.Context, login string, ip string, pa
 		return fmt.Errorf("ip is in the blacklist")
 	}
 
-	ok, err := c.loginRateLimitter.Check(login)
+	ok, err := c.loginRateLimitter.Check(ctx, login)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -51,7 +51,7 @@ func (c *LimitterService) Check(ctx context.Context, login string, ip string, pa
 		return fmt.Errorf("login rate limitter exceeded")
 	}
 
-	ok, err = c.passwordRateLimitter.Check(password)
+	ok, err = c.passwordRateLimitter.Check(ctx, password)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -60,7 +60,7 @@ func (c *LimitterService) Check(ctx context.Context, login string, ip string, pa
 		return fmt.Errorf("password rate limitter exceeded")
 	}
 
-	ok, err = c.ipRateLimitter.Check(ip)
+	ok, err = c.ipRateLimitter.Check(ctx, ip)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -73,12 +73,12 @@ func (c *LimitterService) Check(ctx context.Context, login string, ip string, pa
 }
 
 func (c *LimitterService) Remove(ctx context.Context, login string, ip string) error {
-	err := c.loginRateLimitter.Remove(login)
+	err := c.loginRateLimitter.Remove(ctx, login)
 	if err != nil {
 		log.Println("login remove error: %S", err.Error())
 	}
 
-	err = c.ipRateLimitter.Remove(ip)
+	err = c.ipRateLimitter.Remove(ctx, ip)
 	if err != nil {
 		log.Println("ip remove error: %S", err.Error())
 	}

@@ -1,6 +1,7 @@
 package ratelimit
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -14,7 +15,7 @@ type Stub8ucket struct {
 	}
 }
 
-func (b *Stub8ucket) Set(key string, count uint, startTime time.Time) error {
+func (b Stub8ucket) Set(ctx context.Context, key string, count uint, startTime time.Time) error {
 	b.store[key] = struct {
 		count     uint
 		startTime time.Time
@@ -26,7 +27,7 @@ func (b *Stub8ucket) Set(key string, count uint, startTime time.Time) error {
 	return nil
 }
 
-func (b *Stub8ucket) Get(key string) (uint, time.Time, error) {
+func (b Stub8ucket) Get(ctx context.Context, key string) (uint, time.Time, error) {
 	if v, ok := b.store[key]; ok {
 		return v.count, v.startTime, nil
 	}
@@ -34,7 +35,7 @@ func (b *Stub8ucket) Get(key string) (uint, time.Time, error) {
 	return 0, time.Time{}, nil
 }
 
-func (b *Stub8ucket) Remove(key string) error {
+func (b Stub8ucket) Remove(ctx context.Context, key string) error {
 	delete(b.store, key)
 	return nil
 }
@@ -52,7 +53,7 @@ func TestRatelimit(t *testing.T) {
 			title:    "failed test",
 			limit:    0,
 			interval: 60 * time.Second,
-			bucket: &Stub8ucket{
+			bucket: Stub8ucket{
 				store: map[string]struct {
 					count     uint
 					startTime time.Time
@@ -70,7 +71,7 @@ func TestRatelimit(t *testing.T) {
 			title:    "successful test",
 			limit:    10,
 			interval: 60 * time.Second,
-			bucket: &Stub8ucket{
+			bucket: Stub8ucket{
 				store: map[string]struct {
 					count     uint
 					startTime time.Time
@@ -88,7 +89,7 @@ func TestRatelimit(t *testing.T) {
 			title:    "exceeded the number of requests test",
 			limit:    5,
 			interval: 60 * time.Second,
-			bucket: &Stub8ucket{
+			bucket: Stub8ucket{
 				store: map[string]struct {
 					count     uint
 					startTime time.Time
@@ -106,7 +107,7 @@ func TestRatelimit(t *testing.T) {
 			title:    "successful test after interval",
 			limit:    5,
 			interval: 60 * time.Second,
-			bucket: &Stub8ucket{
+			bucket: Stub8ucket{
 				store: map[string]struct {
 					count     uint
 					startTime time.Time
@@ -128,7 +129,7 @@ func TestRatelimit(t *testing.T) {
 
 			rl := NewRateLimiter(tt.limit, tt.interval, tt.bucket)
 
-			ok, err := rl.Check("test")
+			ok, err := rl.Check(context.Background(), "test")
 
 			require.NoError(t, err)
 			require.Equal(t, tt.expectedOk, ok)
