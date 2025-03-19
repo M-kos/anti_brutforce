@@ -12,7 +12,7 @@ type Limitter interface {
 }
 
 type LabelList interface {
-	Check(key string) bool
+	Check(ctx context.Context, key string) bool
 }
 
 type LimitterService struct {
@@ -35,10 +35,10 @@ func NewLimitterService(loginRateLimitter, passwordRateLimitter, ipRateLimitter 
 }
 
 func (c *LimitterService) Check(ctx context.Context, login string, ip string, password string) error {
-	if ok := c.whitelabelList.Check(ip); ok {
+	if ok := c.whitelabelList.Check(ctx, ip); ok {
 		return nil
 	}
-	if ok := c.blacklabelList.Check(ip); ok {
+	if ok := c.blacklabelList.Check(ctx, ip); ok {
 		return fmt.Errorf("ip is in the blacklist")
 	}
 

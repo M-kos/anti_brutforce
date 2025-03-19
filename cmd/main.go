@@ -12,7 +12,6 @@ import (
 	"github.com/M-kos/anti_brutforce/internal/config"
 	"github.com/M-kos/anti_brutforce/internal/db"
 	limitterservice "github.com/M-kos/anti_brutforce/internal/limitter-service"
-	stubrepo "github.com/M-kos/anti_brutforce/internal/stub-repo"
 	"github.com/M-kos/anti_brutforce/internal/whitelist"
 	"github.com/M-kos/anti_brutforce/pkg/ratelimit"
 )
@@ -33,17 +32,14 @@ func run() error {
 
 	redis := db.NewDb()
 
-	loginBucket := bucketlist.NewDbBucket(redis)
-	loginRateLimitter := ratelimit.NewRateLimiter(conf.LoginNumberAttempts, conf.Timeout, loginBucket)
+	bucketList := bucketlist.NewDbBucketList(redis)
 
-	passwordBucket := bucketlist.NewInMemoryucket()
-	passwordRateLimitter := ratelimit.NewRateLimiter(conf.PasswordNumberAttempts, conf.Timeout, passwordBucket)
+	loginRateLimitter := ratelimit.NewRateLimiter(conf.LoginNumberAttempts, conf.Timeout, bucketList)
+	passwordRateLimitter := ratelimit.NewRateLimiter(conf.PasswordNumberAttempts, conf.Timeout, bucketList)
+	ipRateLimitter := ratelimit.NewRateLimiter(conf.IPNumberAttempts, conf.Timeout, bucketList)
 
-	ipBucket := bucketlist.NewInMemoryucket()
-	ipRateLimitter := ratelimit.NewRateLimiter(conf.IPNumberAttempts, conf.Timeout, ipBucket)
-
-	whitelabelList := whitelist.NewWhitelist(whitelist.NewWhitelistRepository(stubrepo.NewStubRepo()))
-	blacklabelList := blacklist.NewBlacklist(blacklist.NewBlacklistRepository(stubrepo.NewStubRepo()))
+	whitelabelList := whitelist.NewWhitelist(whitelist.NewWhitelistRepository(bucketList))
+	blacklabelList := blacklist.NewBlacklist(blacklist.NewBlacklistRepository(bucketList))
 
 	limitterService := limitterservice.NewLimitterService(loginRateLimitter, passwordRateLimitter, ipRateLimitter, whitelabelList, blacklabelList)
 

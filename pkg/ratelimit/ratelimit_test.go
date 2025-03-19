@@ -15,7 +15,7 @@ type Stub8ucket struct {
 	}
 }
 
-func (b Stub8ucket) Set(ctx context.Context, key string, count uint, startTime time.Time) error {
+func (b Stub8ucket) AddItem(ctx context.Context, key string, count uint, startTime time.Time) error {
 	b.store[key] = struct {
 		count     uint
 		startTime time.Time
@@ -27,7 +27,7 @@ func (b Stub8ucket) Set(ctx context.Context, key string, count uint, startTime t
 	return nil
 }
 
-func (b Stub8ucket) Get(ctx context.Context, key string) (uint, time.Time, error) {
+func (b Stub8ucket) GetItem(ctx context.Context, key string) (uint, time.Time, error) {
 	if v, ok := b.store[key]; ok {
 		return v.count, v.startTime, nil
 	}
@@ -35,7 +35,7 @@ func (b Stub8ucket) Get(ctx context.Context, key string) (uint, time.Time, error
 	return 0, time.Time{}, nil
 }
 
-func (b Stub8ucket) Remove(ctx context.Context, key string) error {
+func (b Stub8ucket) RemoveItem(ctx context.Context, key string) error {
 	delete(b.store, key)
 	return nil
 }

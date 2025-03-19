@@ -1,10 +1,16 @@
 package whitelist
 
+import "context"
+
 type Repository interface {
-	Get(key string) (string, error)
-	Add(key string) error
-	Remove(key string) error
+	GetList(ctx context.Context, listKey string) ([]string, error)
+	AddToList(ctx context.Context, listKey string, value string) error
+	RemoveFromList(ctx context.Context, listKey string, value string) error
 }
+
+const (
+	whitelistKey = "whitelist"
+)
 
 type WhitelistRepo struct {
 	repo Repository
@@ -16,17 +22,17 @@ func NewWhitelistRepository(repository Repository) *WhitelistRepo {
 	}
 }
 
-func (wr *WhitelistRepo) Get(key string) (string, error) {
-	value, err := wr.repo.Get(key)
+func (wr *WhitelistRepo) Get(ctx context.Context) ([]string, error) {
+	values, err := wr.repo.GetList(ctx, whitelistKey)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return value, nil
+	return values, nil
 }
 
-func (wr *WhitelistRepo) Add(key string) error {
-	err := wr.repo.Add(key)
+func (wr *WhitelistRepo) Add(ctx context.Context, value string) error {
+	err := wr.repo.AddToList(ctx, whitelistKey, value)
 	if err != nil {
 		return err
 	}
@@ -34,8 +40,8 @@ func (wr *WhitelistRepo) Add(key string) error {
 	return nil
 }
 
-func (wr *WhitelistRepo) Remove(key string) error {
-	err := wr.repo.Remove(key)
+func (wr *WhitelistRepo) Remove(ctx context.Context, value string) error {
+	err := wr.repo.RemoveFromList(ctx, whitelistKey, value)
 	if err != nil {
 		return err
 	}

@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
 )
 
 type WhitelistRepository interface {
-	Get(key string) (string, error)
-	Add(key string) error
-	Remove(key string) error
+	Get(ctx context.Context) ([]string, error)
+	Add(ctx context.Context, value string) error
+	Remove(ctx context.Context, value string) error
 }
 
 type Whitelist struct {
@@ -22,27 +23,39 @@ func NewWhitelist(repository WhitelistRepository) *Whitelist {
 	}
 }
 
-func (w *Whitelist) Check(key string) bool {
-	value, err := w.repository.Get(key)
+func (w *Whitelist) Check(ctx context.Context, value string) bool {
+	cidrs, err := w.repository.Get(ctx)
 	if err != nil {
 		log.Printf("Whitelist: check wrong %s", err)
 	}
 
-	return value != ""
+	for _, v := range cidrs {
+		_, ipNet, err := net.ParseCIDR(v)
+		if err != nil {
+			log.Printf("Whitelist: check wrong %s", err)
+			continue
+		}
+
+		if ipNet.Contains(net.ParseIP(value)) {
+			return true
+		}
+	}
+
+	return false
 }
 
-func (w *Whitelist) Add(ctx context.Context, key string) error {
-	if err := w.repository.Add(key); err != nil {
-		log.Printf("Whitelist: key not added: %s", err.Error())
+func (w *Whitelist) Add(ctx context.Context, value string) error {
+	if err := w.repository.Add(ctx, value); err != nil {
+		log.Printf("Whitelist: value not added: %s", err.Error())
 		return fmt.Errorf("not added")
 	}
 
 	return nil
 }
 
-func (w *Whitelist) Remove(ctx context.Context, key string) error {
-	if err := w.repository.Remove(key); err != nil {
-		log.Printf("Whitelist: key not removed: %s", err.Error())
+func (w *Whitelist) Remove(ctx context.Context, value string) error {
+	if err := w.repository.Remove(ctx, value); err != nil {
+		log.Printf("Whitelist: value not removed: %s", err.Error())
 		return fmt.Errorf("not removed")
 	}
 

@@ -27,9 +27,9 @@ message ResetBucketsRequest {
 }
 
 message WhitelistRequest {
-  string subnet = 1;
+  string cidr = 1;
 }
 
 message BlacklistRequest {
-  string subnet = 1;
+  string cidr = 1;
 }

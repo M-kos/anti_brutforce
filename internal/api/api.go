@@ -98,13 +98,13 @@ func (s *ServerApi) ResetBuckets(ctx context.Context, req *pb.ResetBucketsReques
 }
 
 func (s *ServerApi) AddToWhitelist(ctx context.Context, req *pb.WhitelistRequest) (*pb.OkResponse, error) {
-	subnet := req.GetSubnet()
+	cidr := req.GetCidr()
 
-	if subnet == "" {
-		return &pb.OkResponse{Ok: false}, status.Error(codes.InvalidArgument, "subnet is required")
+	if cidr == "" {
+		return &pb.OkResponse{Ok: false}, status.Error(codes.InvalidArgument, "cidr is required")
 	}
 
-	if err := s.whitelabelService.Add(ctx, subnet); err != nil {
+	if err := s.whitelabelService.Add(ctx, cidr); err != nil {
 		return &pb.OkResponse{Ok: false}, status.Error(codes.Internal, err.Error())
 	}
 
@@ -112,13 +112,13 @@ func (s *ServerApi) AddToWhitelist(ctx context.Context, req *pb.WhitelistRequest
 }
 
 func (s *ServerApi) RemoveFromWhitelist(ctx context.Context, req *pb.WhitelistRequest) (*pb.OkResponse, error) {
-	subnet := req.GetSubnet()
+	cidr := req.GetCidr()
 
-	if subnet == "" {
-		return &pb.OkResponse{Ok: false}, status.Error(codes.InvalidArgument, "subnet is required")
+	if cidr == "" {
+		return &pb.OkResponse{Ok: false}, status.Error(codes.InvalidArgument, "cidr is required")
 	}
 
-	if err := s.whitelabelService.Remove(ctx, subnet); err != nil {
+	if err := s.whitelabelService.Remove(ctx, cidr); err != nil {
 		return &pb.OkResponse{Ok: false}, status.Error(codes.Internal, err.Error())
 	}
 
@@ -126,13 +126,13 @@ func (s *ServerApi) RemoveFromWhitelist(ctx context.Context, req *pb.WhitelistRe
 }
 
 func (s *ServerApi) AddToBlacklist(ctx context.Context, req *pb.BlacklistRequest) (*pb.OkResponse, error) {
-	subnet := req.GetSubnet()
+	cidr := req.GetCidr()
 
-	if subnet == "" {
-		return &pb.OkResponse{Ok: false}, status.Error(codes.InvalidArgument, "subnet is required")
+	if cidr == "" {
+		return &pb.OkResponse{Ok: false}, status.Error(codes.InvalidArgument, "cidr is required")
 	}
 
-	if err := s.blacklistService.Add(ctx, subnet); err != nil {
+	if err := s.blacklistService.Add(ctx, cidr); err != nil {
 		return &pb.OkResponse{Ok: false}, status.Error(codes.Internal, err.Error())
 	}
 
@@ -140,13 +140,13 @@ func (s *ServerApi) AddToBlacklist(ctx context.Context, req *pb.BlacklistRequest
 }
 
 func (s *ServerApi) RemoveFromBlacklist(ctx context.Context, req *pb.BlacklistRequest) (*pb.OkResponse, error) {
-	subnet := req.GetSubnet()
+	cidr := req.GetCidr()
 
-	if subnet == "" {
-		return &pb.OkResponse{Ok: false}, status.Error(codes.InvalidArgument, "subnet is required")
+	if cidr == "" {
+		return &pb.OkResponse{Ok: false}, status.Error(codes.InvalidArgument, "cidr is required")
 	}
 
-	if err := s.blacklistService.Remove(ctx, subnet); err != nil {
+	if err := s.blacklistService.Remove(ctx, cidr); err != nil {
 		return &pb.OkResponse{Ok: false}, status.Error(codes.Internal, err.Error())
 	}
 

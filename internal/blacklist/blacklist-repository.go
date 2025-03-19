@@ -1,10 +1,16 @@
 package blacklist
 
+import "context"
+
 type Repository interface {
-	Get(key string) (string, error)
-	Add(key string) error
-	Remove(key string) error
+	GetList(ctx context.Context, listKey string) ([]string, error)
+	AddToList(ctx context.Context, listKey string, value string) error
+	RemoveFromList(ctx context.Context, listKey string, value string) error
 }
+
+const (
+	blacklistKey = "blacklist"
+)
 
 type BlacklistRepo struct {
 	repo Repository
@@ -16,17 +22,17 @@ func NewBlacklistRepository(repository Repository) *BlacklistRepo {
 	}
 }
 
-func (br *BlacklistRepo) Get(key string) (string, error) {
-	value, err := br.repo.Get(key)
+func (wr *BlacklistRepo) Get(ctx context.Context) ([]string, error) {
+	values, err := wr.repo.GetList(ctx, blacklistKey)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return value, nil
+	return values, nil
 }
 
-func (br *BlacklistRepo) Add(key string) error {
-	err := br.repo.Add(key)
+func (wr *BlacklistRepo) Add(ctx context.Context, value string) error {
+	err := wr.repo.AddToList(ctx, blacklistKey, value)
 	if err != nil {
 		return err
 	}
@@ -34,8 +40,8 @@ func (br *BlacklistRepo) Add(key string) error {
 	return nil
 }
 
-func (br *BlacklistRepo) Remove(key string) error {
-	err := br.repo.Remove(key)
+func (wr *BlacklistRepo) Remove(ctx context.Context, value string) error {
+	err := wr.repo.RemoveFromList(ctx, blacklistKey, value)
 	if err != nil {
 		return err
 	}
