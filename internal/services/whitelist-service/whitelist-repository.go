@@ -1,9 +1,13 @@
-package whitelist
+package whitelistservice
 
-import "context"
+import (
+	"context"
 
-type Repository interface {
-	GetList(ctx context.Context, listKey string) ([]string, error)
+	"github.com/M-kos/anti_brutforce/internal/models"
+)
+
+type DbProvider interface {
+	GetList(ctx context.Context, listKey string) (*models.LabelList, error)
 	AddToList(ctx context.Context, listKey string, value string) error
 	RemoveFromList(ctx context.Context, listKey string, value string) error
 }
@@ -13,26 +17,26 @@ const (
 )
 
 type WhitelistRepo struct {
-	repo Repository
+	db DbProvider
 }
 
-func NewWhitelistRepository(repository Repository) *WhitelistRepo {
+func NewWhitelistRepository(repository DbProvider) *WhitelistRepo {
 	return &WhitelistRepo{
-		repo: repository,
+		db: repository,
 	}
 }
 
 func (wr *WhitelistRepo) Get(ctx context.Context) ([]string, error) {
-	values, err := wr.repo.GetList(ctx, whitelistKey)
+	list, err := wr.db.GetList(ctx, whitelistKey)
 	if err != nil {
 		return nil, err
 	}
 
-	return values, nil
+	return list.Values, nil
 }
 
 func (wr *WhitelistRepo) Add(ctx context.Context, value string) error {
-	err := wr.repo.AddToList(ctx, whitelistKey, value)
+	err := wr.db.AddToList(ctx, whitelistKey, value)
 	if err != nil {
 		return err
 	}
@@ -41,7 +45,7 @@ func (wr *WhitelistRepo) Add(ctx context.Context, value string) error {
 }
 
 func (wr *WhitelistRepo) Remove(ctx context.Context, value string) error {
-	err := wr.repo.RemoveFromList(ctx, whitelistKey, value)
+	err := wr.db.RemoveFromList(ctx, whitelistKey, value)
 	if err != nil {
 		return err
 	}

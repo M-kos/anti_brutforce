@@ -5,37 +5,29 @@ import (
 	"testing"
 	"time"
 
+	"github.com/M-kos/anti_brutforce/internal/models"
 	"github.com/stretchr/testify/require"
 )
 
-type Stub8ucket struct {
-	store map[string]struct {
-		count     uint
-		startTime time.Time
-	}
+type StubBucket struct {
+	store map[string]models.Bucket
 }
 
-func (b Stub8ucket) AddItem(ctx context.Context, key string, count uint, startTime time.Time) error {
-	b.store[key] = struct {
-		count     uint
-		startTime time.Time
-	}{
-		count:     count,
-		startTime: startTime,
-	}
+func (b StubBucket) AddItem(ctx context.Context, bucket models.Bucket, expiration time.Duration) error {
+	b.store[bucket.Key] = bucket
 
 	return nil
 }
 
-func (b Stub8ucket) GetItem(ctx context.Context, key string) (uint, time.Time, error) {
+func (b StubBucket) GetItem(ctx context.Context, key string) (*models.Bucket, error) {
 	if v, ok := b.store[key]; ok {
-		return v.count, v.startTime, nil
+		return &v, nil
 	}
 
-	return 0, time.Time{}, nil
+	return &models.Bucket{}, nil
 }
 
-func (b Stub8ucket) RemoveItem(ctx context.Context, key string) error {
+func (b StubBucket) RemoveItem(ctx context.Context, key string) error {
 	delete(b.store, key)
 	return nil
 }
@@ -45,7 +37,7 @@ func TestRatelimit(t *testing.T) {
 		title       string
 		limit       uint
 		interval    time.Duration
-		bucket      Bucket
+		bucket      BucketProvider
 		expectedErr error
 		expectedOk  bool
 	}{
@@ -53,14 +45,12 @@ func TestRatelimit(t *testing.T) {
 			title:    "failed test",
 			limit:    0,
 			interval: 60 * time.Second,
-			bucket: Stub8ucket{
-				store: map[string]struct {
-					count     uint
-					startTime time.Time
-				}{
+			bucket: StubBucket{
+				store: map[string]models.Bucket{
 					"test": {
-						count:     0,
-						startTime: time.Now(),
+						Key:       "test",
+						Count:     0,
+						StartTime: time.Now(),
 					},
 				},
 			},
@@ -71,14 +61,12 @@ func TestRatelimit(t *testing.T) {
 			title:    "successful test",
 			limit:    10,
 			interval: 60 * time.Second,
-			bucket: Stub8ucket{
-				store: map[string]struct {
-					count     uint
-					startTime time.Time
-				}{
+			bucket: StubBucket{
+				store: map[string]models.Bucket{
 					"test": {
-						count:     5,
-						startTime: time.Now(),
+						Key:       "test",
+						Count:     5,
+						StartTime: time.Now(),
 					},
 				},
 			},
@@ -89,14 +77,12 @@ func TestRatelimit(t *testing.T) {
 			title:    "exceeded the number of requests test",
 			limit:    5,
 			interval: 60 * time.Second,
-			bucket: Stub8ucket{
-				store: map[string]struct {
-					count     uint
-					startTime time.Time
-				}{
+			bucket: StubBucket{
+				store: map[string]models.Bucket{
 					"test": {
-						count:     5,
-						startTime: time.Now(),
+						Key:       "test",
+						Count:     5,
+						StartTime: time.Now(),
 					},
 				},
 			},
@@ -107,14 +93,12 @@ func TestRatelimit(t *testing.T) {
 			title:    "successful test after interval",
 			limit:    5,
 			interval: 60 * time.Second,
-			bucket: Stub8ucket{
-				store: map[string]struct {
-					count     uint
-					startTime time.Time
-				}{
+			bucket: StubBucket{
+				store: map[string]models.Bucket{
 					"test": {
-						count:     0,
-						startTime: time.Now().Add(-61 * time.Second),
+						Key:       "test",
+						Count:     0,
+						StartTime: time.Now().Add(-61 * time.Second),
 					},
 				},
 			},
