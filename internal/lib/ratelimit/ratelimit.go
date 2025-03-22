@@ -34,6 +34,10 @@ func (rl *RateLimitter) Check(ctx context.Context, key string) (bool, error) {
 		log.Println(err.Error()) // TODO: обработать ошибку??? возвращаем true, т.к. не можем проверить сколько было запросов???
 	}
 
+	if bucket == nil {
+		return true, rl.bucketProvider.AddItem(ctx, models.Bucket{Count: 1, Key: key, StartTime: time.Now()}, rl.interval)
+	}
+
 	if time.Since(bucket.StartTime) > rl.interval {
 		return true, rl.bucketProvider.AddItem(ctx, models.Bucket{Count: 1, Key: key, StartTime: time.Now()}, rl.interval)
 	}

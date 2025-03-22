@@ -95,9 +95,12 @@ func (rdb *RedisDb) GetList(ctx context.Context, key string) (*models.LabelList,
 }
 
 func (rdb *RedisDb) AddToList(ctx context.Context, key string, value string) error {
-	list, err := rdb.GetList(ctx, key)
-	if err != nil {
-		return err
+	list, _ := rdb.GetList(ctx, key)
+
+	if list == nil {
+		list = &models.LabelList{
+			Values: []string{},
+		}
 	}
 
 	list.Values = append(list.Values, value)
@@ -106,9 +109,12 @@ func (rdb *RedisDb) AddToList(ctx context.Context, key string, value string) err
 }
 
 func (rdb *RedisDb) RemoveFromList(ctx context.Context, key string, value string) error {
-	list, err := rdb.GetList(ctx, key)
-	if err != nil {
-		return err
+	list, _ := rdb.GetList(ctx, key)
+
+	if list == nil {
+		list = &models.LabelList{
+			Values: []string{},
+		}
 	}
 
 	for i, v := range list.Values {
