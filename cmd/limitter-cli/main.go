@@ -1,138 +1,61 @@
 package main
 
 import (
-	"context"
-	"flag"
 	"fmt"
 	"os"
 
-	"github.com/M-kos/anti_brutforce/internal/api/pb"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-)
-
-const (
-	ResetCmd  = "reset"
-	AddCmd    = "add"
-	RemoveCmd = "remove"
+	"github.com/M-kos/anti_brutforce/internal/api"
+	"github.com/M-kos/anti_brutforce/internal/config"
+	"github.com/M-kos/anti_brutforce/internal/lib/logger"
+	limittercliservice "github.com/M-kos/anti_brutforce/internal/services/limitter-cli-service"
 )
 
 func main() {
-	var (
-		login    string
-		ip       string
-		listName string
-		cidr     string
-	)
-	resetFlagSet := flag.NewFlagSet(ResetCmd, flag.ExitOnError)
-	resetFlagSet.StringVar(&login, "login", "", "login")
-	resetFlagSet.StringVar(&ip, "ip", "", "ip")
-
-	addFlagSet := flag.NewFlagSet(AddCmd, flag.ExitOnError)
-	addFlagSet.StringVar(&listName, "listname", "", "blacklabel or whitelabel")
-	addFlagSet.StringVar(&cidr, "cidr", "", "cidr (192.168.0.0/24)")
-
-	removeFlagSet := flag.NewFlagSet(RemoveCmd, flag.ExitOnError)
-	removeFlagSet.StringVar(&listName, "listname", "", "blacklabel or whitelabel")
-	removeFlagSet.StringVar(&cidr, "cidr", "", "cidr (192.168.0.0/24)")
-
-	flag.Parse()
-
 	if len(os.Args) < 2 {
 		fmt.Println("command must be passed")
 		return
 	}
 
-	conn, err := grpc.NewClient("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		panic(err) // TODO: handle error
-	}
+	conf := config.LoadConfig()
+	l := logger.NewLogger()
+	client := api.NewClient(conf)
 
-	defer conn.Close()
+	defer client.Close()
 
-	cli := pb.NewAntiBruteforceClient(conn)
+	limitterCLiService := limittercliservice.NewLimitterCliService(client, l)
 
 	switch os.Args[1] {
-	case ResetCmd:
-		if err := resetFlagSet.Parse(os.Args[2:]); err != nil {
-			panic(err) // TODO: handle error
-		}
-
-		fmt.Println("Login >> ", login)
-		fmt.Println("IP >> ", ip)
-		res, err := cli.ResetBuckets(context.Background(), &pb.ResetBucketsRequest{
-			Login: login,
-			Ip:    ip,
-		},
-		)
+	case limittercliservice.ResetCmd:
+		l.Info("Args >> ", os.Args[2:])
+		ok, err := limitterCLiService.Reset(os.Args[2:])
 		if err != nil {
-			panic(err) // TODO: handle error
+			fmt.Println("bucket reset error")
 		}
 
-		fmt.Println("Reset Response >> ", res)
-
-	case AddCmd:
-		if err := addFlagSet.Parse(os.Args[2:]); err != nil {
-			panic(err) // TODO: handle error
+		if ok {
+			fmt.Println("bucket reseted")
 		}
 
-		fmt.Println("List name >> ", listName)
-		fmt.Println("Cidr >> ", cidr)
-
-		if listName == "whitelabel" && cidr != "" {
-			res, err := cli.AddToWhitelist(context.Background(), &pb.WhitelistRequest{
-				Cidr: cidr,
-			},
-			)
-			if err != nil {
-				panic(err) // TODO: handle error
-			}
-
-			fmt.Println("AddCmd Response >> ", res)
+	case limittercliservice.AddCmd:
+		l.Info("Args >> ", os.Args[2:])
+		ok, err := limitterCLiService.Add(os.Args[2:])
+		if err != nil {
+			fmt.Println("add to list error")
 		}
 
-		if listName == "blacklabel" && cidr != "" {
-			res, err := cli.AddToBlacklist(context.Background(), &pb.BlacklistRequest{
-				Cidr: cidr,
-			},
-			)
-			if err != nil {
-				panic(err) // TODO: handle error
-			}
-
-			fmt.Println("AddCmd Response >> ", res)
+		if ok {
+			fmt.Println("added to list")
 		}
 
-	case RemoveCmd:
-		if err := removeFlagSet.Parse(os.Args[2:]); err != nil {
-			panic(err) // TODO: handle error
+	case limittercliservice.RemoveCmd:
+		l.Info("Args >> ", os.Args[2:])
+		ok, err := limitterCLiService.Remove(os.Args[2:])
+		if err != nil {
+			fmt.Println("remove from list error")
 		}
 
-		fmt.Println("List name >> ", listName)
-		fmt.Println("Cidr >> ", cidr)
-
-		if listName == "whitelabel" && cidr != "" {
-			res, err := cli.RemoveFromWhitelist(context.Background(), &pb.WhitelistRequest{
-				Cidr: cidr,
-			},
-			)
-			if err != nil {
-				panic(err) // TODO: handle error
-			}
-
-			fmt.Println("RemoveCmd Response >> ", res)
-		}
-
-		if listName == "blacklabel" && cidr != "" {
-			res, err := cli.RemoveFromBlacklist(context.Background(), &pb.BlacklistRequest{
-				Cidr: cidr,
-			},
-			)
-			if err != nil {
-				panic(err) // TODO: handle error
-			}
-
-			fmt.Println("RemoveCmd Response >> ", res)
+		if ok {
+			fmt.Println("removed from list")
 		}
 	}
 }
