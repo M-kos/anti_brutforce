@@ -5,6 +5,7 @@ go 1.23.5
 require (
 	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.10.0
+	golang.org/x/crypto v0.32.0
 	google.golang.org/grpc v1.71.0
 	google.golang.org/protobuf v1.36.5
 )

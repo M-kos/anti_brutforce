@@ -13,7 +13,7 @@ type DbProvider interface {
 }
 
 const (
-	whitelistKey = "whitelist"
+	WhitelistKey = "whitelist"
 )
 
 type WhitelistRepo struct {
@@ -27,7 +27,7 @@ func NewWhitelistRepository(repository DbProvider) *WhitelistRepo {
 }
 
 func (wr *WhitelistRepo) Get(ctx context.Context) ([]string, error) {
-	list, err := wr.db.GetList(ctx, whitelistKey)
+	list, err := wr.db.GetList(ctx, WhitelistKey)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func (wr *WhitelistRepo) Get(ctx context.Context) ([]string, error) {
 }
 
 func (wr *WhitelistRepo) Add(ctx context.Context, value string) error {
-	err := wr.db.AddToList(ctx, whitelistKey, value)
+	err := wr.db.AddToList(ctx, WhitelistKey, value)
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ func (wr *WhitelistRepo) Add(ctx context.Context, value string) error {
 }
 
 func (wr *WhitelistRepo) Remove(ctx context.Context, value string) error {
-	err := wr.db.RemoveFromList(ctx, whitelistKey, value)
+	err := wr.db.RemoveFromList(ctx, WhitelistKey, value)
 	if err != nil {
 		return err
 	}

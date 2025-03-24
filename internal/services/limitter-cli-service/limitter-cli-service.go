@@ -48,7 +48,7 @@ func (l *LimitterCliService) Run() {
 	l.resetFlagSet.StringVar(&l.Ip, "ip", "", "ip")
 
 	l.addFlagSet.StringVar(&l.ListName, "listname", "", "blacklabel or whitelabel")
-	l.addFlagSet.StringVar(&l.Cidr, "cidr", "", "cidr (192.168.0.0/24)")
+	l.addFlagSet.StringVar(&l.Cidr, "cidr", "", "cidr, for example '192.168.0.0/24'")
 
 	l.removeFlagSet.StringVar(&l.ListName, "listname", "", "'blacklabel' or 'whitelabel'")
 	l.removeFlagSet.StringVar(&l.Cidr, "cidr", "", "cidr, for example '192.168.0.0/24'")

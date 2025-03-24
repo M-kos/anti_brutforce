@@ -13,7 +13,7 @@ type DbProvider interface {
 }
 
 const (
-	blacklistKey = "blacklist"
+	BlacklistKey = "blacklist"
 )
 
 type BlacklistRepository struct {
@@ -27,7 +27,7 @@ func NewBlacklistRepository(db DbProvider) *BlacklistRepository {
 }
 
 func (wr *BlacklistRepository) Get(ctx context.Context) ([]string, error) {
-	list, err := wr.db.GetList(ctx, blacklistKey)
+	list, err := wr.db.GetList(ctx, BlacklistKey)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func (wr *BlacklistRepository) Get(ctx context.Context) ([]string, error) {
 }
 
 func (wr *BlacklistRepository) Add(ctx context.Context, value string) error {
-	err := wr.db.AddToList(ctx, blacklistKey, value)
+	err := wr.db.AddToList(ctx, BlacklistKey, value)
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ func (wr *BlacklistRepository) Add(ctx context.Context, value string) error {
 }
 
 func (wr *BlacklistRepository) Remove(ctx context.Context, value string) error {
-	err := wr.db.RemoveFromList(ctx, blacklistKey, value)
+	err := wr.db.RemoveFromList(ctx, BlacklistKey, value)
 	if err != nil {
 		return err
 	}

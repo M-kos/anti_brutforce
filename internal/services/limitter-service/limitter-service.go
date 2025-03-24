@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/M-kos/anti_brutforce/internal/lib/logger"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -52,6 +53,7 @@ func (c *LimitterService) Check(ctx context.Context, login string, ip string, pa
 	if ok := c.whitelabelList.Check(ctx, ip); ok {
 		return nil
 	}
+
 	if ok := c.blacklabelList.Check(ctx, ip); ok {
 		c.log.Error(fmt.Sprintf("LimitterService: Check: %s: %s", ErrIpInBlacklist, ip))
 		return errors.New(ErrIpInBlacklist)
@@ -67,13 +69,18 @@ func (c *LimitterService) Check(ctx context.Context, login string, ip string, pa
 		return errors.New(ErrLoginRateLimitterExceeded)
 	}
 
-	ok, err = c.passwordRateLimitter.Check(ctx, password)
+	pass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		pass = []byte(password)
+	}
+
+	ok, err = c.passwordRateLimitter.Check(ctx, string(pass))
 	if err != nil {
 		c.log.Error(fmt.Sprintf("LimitterService: Check: %s", err.Error()))
 	}
 
 	if !ok {
-		c.log.Error(fmt.Sprintf("LimitterService: Check: %s: %s", ErrPasswordRateLimitterExceeded, password))
+		c.log.Error(fmt.Sprintf("LimitterService: Check: %s: %s (hash: %s)", ErrPasswordRateLimitterExceeded, password, pass))
 		return errors.New(ErrPasswordRateLimitterExceeded)
 	}
 
