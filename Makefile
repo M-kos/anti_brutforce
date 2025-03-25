@@ -36,6 +36,7 @@ tidy:
 .proto-generate:
 	rm -rf internal/api/pb
 	mkdir -p internal/api/pb
+	ls -la bin
 
 	$(PROTOC) --proto_path=$(CURDIR) \
 		--go_out=$(CURDIR)/internal/api/pb \
@@ -48,9 +49,6 @@ tidy:
 generate: .deps .proto-generate tidy
 
 docker-redis-up:
-	@echo $(REDIS_USER)
-	@echo $(REDIS_USER_PASSWORD)
-	@echo $(REDIS_PASSWORD)
 	REDIS_PASSWORD=$(REDIS_PASSWORD) REDIS_USER=$(REDIS_USER) REDIS_USER_PASSWORD=$(REDIS_USER_PASSWORD) docker-compose -f ./docker/redis/docker-compose.yaml up -d
 
 docker-redis-down:

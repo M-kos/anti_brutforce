@@ -62,20 +62,3 @@ jobs:
 
       - name: make build
         run: make build
-
-  dock:
-    name: docker example
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Run Docker Compose
-        run: make docker-redis-up
-        env:
-          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-          REDIS_USER: ${{ secrets.REDIS_USER }}
-          REDIS_USER_PASSWORD: ${{ secrets.REDIS_USER_PASSWORD }}
