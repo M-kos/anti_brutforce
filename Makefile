@@ -3,6 +3,9 @@ ifneq (,$(wildcard ./.env))
     export
 endif
 
+LOCAL_BIN := $(CURDIR)/bin
+PROTOC = PATH="$$PATH:$(LOCAL_BIN)" protoc
+
 build: generate
 	go build -o ./bin/rl ./cmd/limitter/main.go
 	go build -o ./bin/rl-cli ./cmd/limitter-cli/main.go
@@ -25,21 +28,22 @@ clean:
 tidy:
 	go mod tidy -v
 
+.deps: export GOBIN := $(LOCAL_BIN)
 .deps:
-	go get google.golang.org/protobuf/cmd/protoc-gen-go@latest
-	go get google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-	@echo $$PATH
-	@echo $(go env GOPATH)
-	export PATH="$$PATH:$(go env GOPATH)/bin"
+	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
 .proto-generate:
 	rm -rf internal/api/pb
 	mkdir -p internal/api/pb
 
-	protoc \
+	$(PROTOC) \
 		--go_out=internal/api/pb \
 		--go-grpc_out=internal/api/pb \
 		internal/api/proto/*.proto
+
+	rm bin/protoc-gen-go
+	rm bin/protoc-gen-go-grpc
 
 generate: .deps .proto-generate tidy
 
