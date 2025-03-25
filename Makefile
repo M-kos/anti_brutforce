@@ -28,6 +28,8 @@ tidy:
 .deps:
 	go get google.golang.org/protobuf/cmd/protoc-gen-go@latest
 	go get google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+	@echo $$PATH
+	@echo $(go env GOPATH)
 	export PATH="$$PATH:$(go env GOPATH)/bin"
 
 .proto-generate:
@@ -42,9 +44,9 @@ tidy:
 generate: .deps .proto-generate tidy
 
 docker-redis-up:
-	echo $(REDIS_USER)
-	echo $(REDIS_USER_PASSWORD)
-	echo $(REDIS_PASSWORD)
+	@echo $(REDIS_USER)
+	@echo $(REDIS_USER_PASSWORD)
+	@echo $(REDIS_PASSWORD)
 	REDIS_PASSWORD=$(REDIS_PASSWORD) REDIS_USER=$(REDIS_USER) REDIS_USER_PASSWORD=$(REDIS_USER_PASSWORD) docker-compose -f ./docker/redis/docker-compose.yaml up -d
 
 docker-redis-down:
