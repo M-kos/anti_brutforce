@@ -37,10 +37,10 @@ tidy:
 	rm -rf internal/api/pb
 	mkdir -p internal/api/pb
 
-	$(PROTOC) \
-		--go_out=internal/api/pb \
-		--go-grpc_out=internal/api/pb \
-		internal/api/proto/*.proto
+	$(PROTOC) --proto_path=$(CURDIR) \
+		--go_out=$(CURDIR)/internal/api/pb \
+		--go-grpc_out=$(CURDIR)/internal/api/pb \
+		$(CURDIR)/internal/api/proto/*.proto
 
 	rm bin/protoc-gen-go
 	rm bin/protoc-gen-go-grpc
