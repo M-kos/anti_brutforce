@@ -3,7 +3,7 @@ ifneq (,$(wildcard ./.env))
     export
 endif
 
-build:
+build: generate
 	go build -o ./bin/rl ./cmd/limitter/main.go
 	go build -o ./bin/rl-cli ./cmd/limitter-cli/main.go
 
