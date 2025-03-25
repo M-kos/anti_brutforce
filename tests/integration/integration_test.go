@@ -1,3 +1,5 @@
+//go:build integration
+
 package integration_test
 
 import (
@@ -59,13 +61,12 @@ func (s *LimitterSuite) SetupSuite() {
 	s.limitterService = limitterService
 
 	server := api.NewServerApi(limitterService, whitelabelList, blacklabelList, l)
-
 	s.server = server
 
 	s.ctx = context.Background()
 }
 
-func (s *LimitterSuite) TearDownSuite() {
+func (s *LimitterSuite) SetupTest() {
 	_, err := s.redis.Client.FlushDB(s.ctx).Result()
 	s.Require().NoError(err)
 }

@@ -1,14 +1,20 @@
+include .env
+
 build:
-	go build -o ./bin/rl ./cmd/main.go
+	go build -o ./bin/rl ./cmd/limitter/main.go
+	go build -o ./bin/rl-cli ./cmd/limitter-cli/main.go
 
 run:
 	go run ./cmd/limitter/main.go
 
 test:
-	go test ./... -v
+	go test ./... -v -race -count 100
+
+integration-test: docker-redis-up
+	go test --tags=integration ./... -v
 
 lint:
-	go vet ./...
+	golangci-lint run ./... -v
 
 clean:
 	rm -rf ./bin
@@ -31,3 +37,11 @@ tidy:
 		internal/api/proto/*.proto
 
 generate: .deps .proto-generate tidy
+
+docker-redis-up:
+	REDIS_PASSWORD=$(REDIS_PASSWORD) REDIS_USER=$(REDIS_USER) REDIS_USER_PASSWORD=$(REDIS_USER_PASSWORD) docker-compose -f ./docker/redis/docker-compose.yaml up -d
+
+docker-redis-down:
+	docker-compose -f ./docker/redis/docker-compose.yaml down
+
+.PHONY: build run test lint clean tidy generate docker-redis-up docker-redis-down
