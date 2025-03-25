@@ -27,10 +27,10 @@ func main() {
 	log.Println("shutting down...")
 }
 
-func run() error {
+func run() {
 	conf := config.LoadConfig()
 	l := logger.NewLogger()
-	redis := db.NewRedisDb(conf, l)
+	redis := db.NewRedisDB(conf, l)
 
 	loginRateLimitter := ratelimit.NewRateLimiter(conf.LoginNumberAttempts, conf.Timeout, redis)
 	passwordRateLimitter := ratelimit.NewRateLimiter(conf.PasswordNumberAttempts, conf.Timeout, redis)
@@ -39,12 +39,17 @@ func run() error {
 	whitelabelList := whitelistservice.NewWhitelist(whitelistservice.NewWhitelistRepository(redis), l)
 	blacklabelList := blacklistservice.NewBlacklist(blacklistservice.NewBlacklistRepository(redis), l)
 
-	limitterService := limitterservice.NewLimitterService(loginRateLimitter, passwordRateLimitter, ipRateLimitter, whitelabelList, blacklabelList, l)
+	limitterService := limitterservice.NewLimitterService(
+		loginRateLimitter,
+		passwordRateLimitter,
+		ipRateLimitter,
+		whitelabelList,
+		blacklabelList,
+		l,
+	)
 
 	err := api.Run(conf, limitterService, whitelabelList, blacklabelList, l)
 	if err != nil {
 		l.Error(err.Error())
 	}
-
-	return err
 }

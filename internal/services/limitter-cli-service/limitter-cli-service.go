@@ -11,7 +11,7 @@ import (
 
 type LimitterCliService struct {
 	Login    string
-	Ip       string
+	IP       string
 	ListName string
 	Cidr     string
 
@@ -19,7 +19,7 @@ type LimitterCliService struct {
 	addFlagSet    *flag.FlagSet
 	removeFlagSet *flag.FlagSet
 
-	client *api.ClientApi
+	client *api.ClientAPI
 	log    *logger.Logger
 }
 
@@ -29,7 +29,7 @@ const (
 	RemoveCmd = "remove"
 )
 
-func NewLimitterCliService(client *api.ClientApi, log *logger.Logger) *LimitterCliService {
+func NewLimitterCliService(client *api.ClientAPI, log *logger.Logger) *LimitterCliService {
 	resetFlagSet := flag.NewFlagSet(ResetCmd, flag.ExitOnError)
 	addFlagSet := flag.NewFlagSet(AddCmd, flag.ExitOnError)
 	removeFlagSet := flag.NewFlagSet(RemoveCmd, flag.ExitOnError)
@@ -45,7 +45,7 @@ func NewLimitterCliService(client *api.ClientApi, log *logger.Logger) *LimitterC
 
 func (l *LimitterCliService) Run() {
 	l.resetFlagSet.StringVar(&l.Login, "login", "", "login")
-	l.resetFlagSet.StringVar(&l.Ip, "ip", "", "ip")
+	l.resetFlagSet.StringVar(&l.IP, "ip", "", "ip")
 
 	l.addFlagSet.StringVar(&l.ListName, "listname", "", "blacklabel or whitelabel")
 	l.addFlagSet.StringVar(&l.Cidr, "cidr", "", "cidr, for example '192.168.0.0/24'")
@@ -58,17 +58,17 @@ func (l *LimitterCliService) Run() {
 
 func (l *LimitterCliService) Reset(args []string) (bool, error) {
 	if err := l.resetFlagSet.Parse(args); err != nil {
-		l.log.Error("LimitterCliService: Reset: ", err.Error())
+		l.log.Error("limitterCliService: Reset: ", err.Error())
 		return false, err
 	}
 
 	_, err := l.client.Pb.ResetBuckets(context.Background(), &pb.ResetBucketsRequest{
 		Login: l.Login,
-		Ip:    l.Ip,
+		Ip:    l.IP,
 	},
 	)
 	if err != nil {
-		l.log.Error("LimitterCliService: Reset: ResetBuckets: ", err.Error())
+		l.log.Error("limitterCliService: Reset: ResetBuckets: ", err.Error())
 		return false, err
 	}
 
@@ -83,24 +83,24 @@ func (l *LimitterCliService) Add(args []string) (bool, error) {
 
 	ctx := context.Background()
 
-	if l.ListName == "whitelabel" && l.Cidr != "" {
-		_, err := l.client.Pb.AddToWhitelist(ctx, &pb.WhitelistRequest{
-			Cidr: l.Cidr,
-		},
-		)
-		if err != nil {
-			l.log.Error("LimitterCliService: Add: Whitelist: ", err.Error())
-			return false, err
-		}
-	}
-
 	if l.ListName == "blacklabel" && l.Cidr != "" {
 		_, err := l.client.Pb.AddToBlacklist(context.Background(), &pb.BlacklistRequest{
 			Cidr: l.Cidr,
 		},
 		)
 		if err != nil {
-			l.log.Error("LimitterCliService: Add: Blacklist: ", err.Error())
+			l.log.Error("limitterCliService: Add: Blacklist: ", err.Error())
+			return false, err
+		}
+	}
+
+	if l.ListName == "whitelabel" && l.Cidr != "" {
+		_, err := l.client.Pb.AddToWhitelist(ctx, &pb.WhitelistRequest{
+			Cidr: l.Cidr,
+		},
+		)
+		if err != nil {
+			l.log.Error("limitterCliService: Add: Whitelist: ", err.Error())
 			return false, err
 		}
 	}
@@ -110,7 +110,7 @@ func (l *LimitterCliService) Add(args []string) (bool, error) {
 
 func (l *LimitterCliService) Remove(args []string) (bool, error) {
 	if err := l.removeFlagSet.Parse(args); err != nil {
-		l.log.Error("LimitterCliService: Remove: ", err.Error())
+		l.log.Error("limitterCliService: Remove: ", err.Error())
 		return false, err
 	}
 
@@ -122,7 +122,7 @@ func (l *LimitterCliService) Remove(args []string) (bool, error) {
 		},
 		)
 		if err != nil {
-			l.log.Error("LimitterCliService: Remove: Whitelist: ", err.Error())
+			l.log.Error("limitterCliService: Remove: Whitelist: ", err.Error())
 			return false, err
 		}
 	}
@@ -133,7 +133,7 @@ func (l *LimitterCliService) Remove(args []string) (bool, error) {
 		},
 		)
 		if err != nil {
-			l.log.Error("LimitterCliService: Remove: Blacklist: ", err.Error())
+			l.log.Error("limitterCliService: Remove: Blacklist: ", err.Error())
 			return false, err
 		}
 	}

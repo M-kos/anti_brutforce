@@ -31,7 +31,8 @@ func NewRateLimiter(limit uint, interval time.Duration, bucketProvider BucketPro
 func (rl *RateLimitter) Check(ctx context.Context, key string) (bool, error) {
 	bucket, err := rl.bucketProvider.GetItem(ctx, key)
 	if err != nil {
-		log.Println(err.Error()) // TODO: обработать ошибку??? возвращаем true, т.к. не можем проверить сколько было запросов???
+		// TODO: обработать ошибку??? возвращаем true, т.к. не можем проверить сколько было запросов???
+		log.Println(err.Error())
 	}
 
 	if bucket == nil {
@@ -46,7 +47,10 @@ func (rl *RateLimitter) Check(ctx context.Context, key string) (bool, error) {
 		return false, nil
 	}
 
-	return true, rl.bucketProvider.AddItem(ctx, models.Bucket{Count: bucket.Count + 1, Key: key, StartTime: bucket.StartTime}, rl.interval)
+	return true, rl.bucketProvider.AddItem(ctx,
+		models.Bucket{Count: bucket.Count + 1, Key: key, StartTime: bucket.StartTime},
+		rl.interval,
+	)
 }
 
 func (rl *RateLimitter) Remove(ctx context.Context, key string) error {

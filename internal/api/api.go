@@ -6,9 +6,9 @@ import (
 	"log"
 	"net"
 
-	"github.com/M-kos/anti_brutforce/internal/api/pb" //nolint
+	"github.com/M-kos/anti_brutforce/internal/api/pb"
 	"github.com/M-kos/anti_brutforce/internal/config"
-	"github.com/M-kos/anti_brutforce/internal/lib/logger"
+	"github.com/M-kos/anti_brutforce/internal/models"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -23,18 +23,23 @@ type LabelService interface {
 	Remove(ctx context.Context, subnet string) error
 }
 
-type ServerApi struct {
+type ServerAPI struct {
 	pb.UnimplementedAntiBruteforceServer
 
 	limitterService   LimitterService
 	whitelabelService LabelService
 	blacklistService  LabelService
 
-	logger logger.LoggerProvider
+	logger models.LoggerProvider
 }
 
-func NewServerApi(limitterService LimitterService, whitelabelService LabelService, blacklistService LabelService, logger logger.LoggerProvider) *ServerApi {
-	return &ServerApi{
+func NewServerAPI(
+	limitterService LimitterService,
+	whitelabelService LabelService,
+	blacklistService LabelService,
+	logger models.LoggerProvider,
+) *ServerAPI {
+	return &ServerAPI{
 		limitterService:   limitterService,
 		whitelabelService: whitelabelService,
 		blacklistService:  blacklistService,
@@ -42,9 +47,15 @@ func NewServerApi(limitterService LimitterService, whitelabelService LabelServic
 	}
 }
 
-func Run(conf *config.Config, limitterService LimitterService, whitelabelService LabelService, blacklistService LabelService, logger logger.LoggerProvider) error {
+func Run(
+	conf *config.Config,
+	limitterService LimitterService,
+	whitelabelService LabelService,
+	blacklistService LabelService,
+	logger models.LoggerProvider,
+) error {
 	server := grpc.NewServer()
-	api := NewServerApi(limitterService, whitelabelService, blacklistService, logger)
+	api := NewServerAPI(limitterService, whitelabelService, blacklistService, logger)
 	pb.RegisterAntiBruteforceServer(server, api)
 
 	listen, err := net.Listen("tcp", fmt.Sprintf(":%d", conf.GRPCPopt))
@@ -61,7 +72,7 @@ func Run(conf *config.Config, limitterService LimitterService, whitelabelService
 	return nil
 }
 
-func (s *ServerApi) CheckCredentials(ctx context.Context, req *pb.CheckCredentialsRequest) (*pb.OkResponse, error) {
+func (s *ServerAPI) CheckCredentials(ctx context.Context, req *pb.CheckCredentialsRequest) (*pb.OkResponse, error) {
 	login := req.GetLogin()
 	password := req.GetPassword()
 	ip := req.GetIp()
@@ -75,8 +86,8 @@ func (s *ServerApi) CheckCredentials(ctx context.Context, req *pb.CheckCredentia
 		return &pb.OkResponse{Ok: false}, status.Error(codes.InvalidArgument, ErrPasswordIsRequired.Error())
 	}
 	if net.ParseIP(ip) == nil {
-		s.logger.Error(ErrIpIsRequired.Error())
-		return &pb.OkResponse{Ok: false}, status.Error(codes.InvalidArgument, ErrIpIsRequired.Error())
+		s.logger.Error(ErrIPIsRequired.Error())
+		return &pb.OkResponse{Ok: false}, status.Error(codes.InvalidArgument, ErrIPIsRequired.Error())
 	}
 
 	if err := s.limitterService.Check(ctx, login, ip, password); err != nil {
@@ -87,7 +98,7 @@ func (s *ServerApi) CheckCredentials(ctx context.Context, req *pb.CheckCredentia
 	return &pb.OkResponse{Ok: true}, nil
 }
 
-func (s *ServerApi) ResetBuckets(ctx context.Context, req *pb.ResetBucketsRequest) (*pb.OkResponse, error) {
+func (s *ServerAPI) ResetBuckets(ctx context.Context, req *pb.ResetBucketsRequest) (*pb.OkResponse, error) {
 	login := req.GetLogin()
 	ip := req.GetIp()
 
@@ -97,7 +108,7 @@ func (s *ServerApi) ResetBuckets(ctx context.Context, req *pb.ResetBucketsReques
 	}
 	if net.ParseIP(ip) == nil {
 		s.logger.Error(ErrLoginIsRequired.Error())
-		return &pb.OkResponse{Ok: false}, status.Error(codes.InvalidArgument, ErrIpIsRequired.Error())
+		return &pb.OkResponse{Ok: false}, status.Error(codes.InvalidArgument, ErrIPIsRequired.Error())
 	}
 
 	if err := s.limitterService.Remove(ctx, login, ip); err != nil {
@@ -108,7 +119,7 @@ func (s *ServerApi) ResetBuckets(ctx context.Context, req *pb.ResetBucketsReques
 	return &pb.OkResponse{Ok: true}, nil
 }
 
-func (s *ServerApi) AddToWhitelist(ctx context.Context, req *pb.WhitelistRequest) (*pb.OkResponse, error) {
+func (s *ServerAPI) AddToWhitelist(ctx context.Context, req *pb.WhitelistRequest) (*pb.OkResponse, error) {
 	cidr := req.GetCidr()
 
 	if cidr == "" {
@@ -124,7 +135,7 @@ func (s *ServerApi) AddToWhitelist(ctx context.Context, req *pb.WhitelistRequest
 	return &pb.OkResponse{Ok: true}, nil
 }
 
-func (s *ServerApi) RemoveFromWhitelist(ctx context.Context, req *pb.WhitelistRequest) (*pb.OkResponse, error) {
+func (s *ServerAPI) RemoveFromWhitelist(ctx context.Context, req *pb.WhitelistRequest) (*pb.OkResponse, error) {
 	cidr := req.GetCidr()
 
 	if cidr == "" {
@@ -140,7 +151,7 @@ func (s *ServerApi) RemoveFromWhitelist(ctx context.Context, req *pb.WhitelistRe
 	return &pb.OkResponse{Ok: true}, nil
 }
 
-func (s *ServerApi) AddToBlacklist(ctx context.Context, req *pb.BlacklistRequest) (*pb.OkResponse, error) {
+func (s *ServerAPI) AddToBlacklist(ctx context.Context, req *pb.BlacklistRequest) (*pb.OkResponse, error) {
 	cidr := req.GetCidr()
 
 	if cidr == "" {
@@ -156,7 +167,7 @@ func (s *ServerApi) AddToBlacklist(ctx context.Context, req *pb.BlacklistRequest
 	return &pb.OkResponse{Ok: true}, nil
 }
 
-func (s *ServerApi) RemoveFromBlacklist(ctx context.Context, req *pb.BlacklistRequest) (*pb.OkResponse, error) {
+func (s *ServerAPI) RemoveFromBlacklist(ctx context.Context, req *pb.BlacklistRequest) (*pb.OkResponse, error) {
 	cidr := req.GetCidr()
 
 	if cidr == "" {

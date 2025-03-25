@@ -9,22 +9,25 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-type ClientApi struct {
+type ClientAPI struct {
 	Pb   pb.AntiBruteforceClient
 	Conn *grpc.ClientConn
 }
 
-func NewClient(conf *config.Config) *ClientApi {
-	conn, err := grpc.NewClient(fmt.Sprintf("%s:%d", "localhost", conf.GRPCPopt), grpc.WithTransportCredentials(insecure.NewCredentials()))
+func NewClient(conf *config.Config) *ClientAPI {
+	conn, err := grpc.NewClient(
+		fmt.Sprintf("%s:%d", "localhost", conf.GRPCPopt),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
 	if err != nil {
 		panic(err)
 	}
 
 	client := pb.NewAntiBruteforceClient(conn)
 
-	return &ClientApi{Pb: client, Conn: conn}
+	return &ClientAPI{Pb: client, Conn: conn}
 }
 
-func (c *ClientApi) Close() {
+func (c *ClientAPI) Close() {
 	c.Conn.Close()
 }

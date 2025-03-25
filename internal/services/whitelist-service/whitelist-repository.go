@@ -6,7 +6,7 @@ import (
 	"github.com/M-kos/anti_brutforce/internal/models"
 )
 
-type DbProvider interface {
+type DBProvider interface {
 	GetList(ctx context.Context, listKey string) (*models.LabelList, error)
 	AddToList(ctx context.Context, listKey string, value string) error
 	RemoveFromList(ctx context.Context, listKey string, value string) error
@@ -17,10 +17,10 @@ const (
 )
 
 type WhitelistRepo struct {
-	db DbProvider
+	db DBProvider
 }
 
-func NewWhitelistRepository(repository DbProvider) *WhitelistRepo {
+func NewWhitelistRepository(repository DBProvider) *WhitelistRepo {
 	return &WhitelistRepo{
 		db: repository,
 	}

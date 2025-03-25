@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/M-kos/anti_brutforce/internal/lib/logger"
+	"github.com/M-kos/anti_brutforce/internal/models"
 )
 
 var (
-	ErrCheck  = "Whitelist: Check: check wrong"
-	ErrAdd    = "Whitelist: Add: value not added"
-	ErrRemove = "Whitelist: Remove: value not removed"
+	ErrCheck  = "whitelist: Check: check wrong"
+	ErrAdd    = "whitelist: Add: value not added"
+	ErrRemove = "whitelist: Remove: value not removed"
 )
 
 type WhitelistRepositoryProvider interface {
@@ -23,10 +23,10 @@ type WhitelistRepositoryProvider interface {
 
 type WhitelistService struct {
 	repository WhitelistRepositoryProvider
-	log        logger.LoggerProvider
+	log        models.LoggerProvider
 }
 
-func NewWhitelist(repository WhitelistRepositoryProvider, log logger.LoggerProvider) *WhitelistService {
+func NewWhitelist(repository WhitelistRepositoryProvider, log models.LoggerProvider) *WhitelistService {
 	return &WhitelistService{
 		repository: repository,
 		log:        log,

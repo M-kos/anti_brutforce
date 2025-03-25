@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/M-kos/anti_brutforce/internal/lib/logger"
+	"github.com/M-kos/anti_brutforce/internal/models"
 )
 
 var (
-	ErrCheck  = "Blacklist: Check: check wrong"
-	ErrAdd    = "Blacklist: Add: value not added"
-	ErrRemove = "Blacklist: Remove: value not removed"
+	ErrCheck  = "blacklist: Check: check wrong"
+	ErrAdd    = "blacklist: Add: value not added"
+	ErrRemove = "blacklist: Remove: value not removed"
 )
 
 type BlacklistRepositoryProvider interface {
@@ -23,10 +23,10 @@ type BlacklistRepositoryProvider interface {
 
 type BlacklistService struct {
 	repository BlacklistRepositoryProvider
-	log        logger.LoggerProvider
+	log        models.LoggerProvider
 }
 
-func NewBlacklist(repository BlacklistRepositoryProvider, log logger.LoggerProvider) *BlacklistService {
+func NewBlacklist(repository BlacklistRepositoryProvider, log models.LoggerProvider) *BlacklistService {
 	return &BlacklistService{
 		repository: repository,
 		log:        log,

@@ -5,17 +5,17 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/M-kos/anti_brutforce/internal/lib/logger"
+	"github.com/M-kos/anti_brutforce/internal/models"
 	"golang.org/x/crypto/bcrypt"
 )
 
 var (
-	ErrIpInBlacklist                = "ip is in the blacklist"
+	ErrIPInBlacklist                = "ip is in the blacklist"
 	ErrLoginRateLimitterExceeded    = "login rate limitter exceeded"
 	ErrPasswordRateLimitterExceeded = "password rate limitter exceeded"
-	ErrIpRateLimitterExceeded       = "ip rate limitter exceeded"
+	ErrIPRateLimitterExceeded       = "ip rate limitter exceeded"
 	ErrLoginRemoveError             = "login remove error"
-	ErrIpRemoveError                = "ip remove error"
+	ErrIPRemoveError                = "ip remove error"
 )
 
 type RateLimitter interface {
@@ -35,10 +35,17 @@ type LimitterService struct {
 	whitelabelList LabelListChecker
 	blacklabelList LabelListChecker
 
-	log logger.LoggerProvider
+	log models.LoggerProvider
 }
 
-func NewLimitterService(loginRateLimitter, passwordRateLimitter, ipRateLimitter RateLimitter, whitelabelList, blacklabelList LabelListChecker, log logger.LoggerProvider) *LimitterService {
+func NewLimitterService(
+	loginRateLimitter,
+	passwordRateLimitter,
+	ipRateLimitter RateLimitter,
+	whitelabelList,
+	blacklabelList LabelListChecker,
+	log models.LoggerProvider,
+) *LimitterService {
 	return &LimitterService{
 		loginRateLimitter:    loginRateLimitter,
 		passwordRateLimitter: passwordRateLimitter,
@@ -55,17 +62,17 @@ func (c *LimitterService) Check(ctx context.Context, login string, ip string, pa
 	}
 
 	if ok := c.blacklabelList.Check(ctx, ip); ok {
-		c.log.Error(fmt.Sprintf("LimitterService: Check: %s: %s", ErrIpInBlacklist, ip))
-		return errors.New(ErrIpInBlacklist)
+		c.log.Error(fmt.Sprintf("LimitterService: Check: %s: %s", ErrIPInBlacklist, ip))
+		return errors.New(ErrIPInBlacklist)
 	}
 
 	ok, err := c.loginRateLimitter.Check(ctx, login)
 	if err != nil {
-		c.log.Error(fmt.Sprintf("LimitterService: Check: %s", err.Error()))
+		c.log.Error(fmt.Sprintf("limitterService: Check: %s", err.Error()))
 	}
 
 	if !ok {
-		c.log.Error(fmt.Sprintf("LimitterService: Check: %s: %s", ErrLoginRateLimitterExceeded, login))
+		c.log.Error(fmt.Sprintf("limitterService: Check: %s: %s", ErrLoginRateLimitterExceeded, login))
 		return errors.New(ErrLoginRateLimitterExceeded)
 	}
 
@@ -76,22 +83,22 @@ func (c *LimitterService) Check(ctx context.Context, login string, ip string, pa
 
 	ok, err = c.passwordRateLimitter.Check(ctx, string(pass))
 	if err != nil {
-		c.log.Error(fmt.Sprintf("LimitterService: Check: %s", err.Error()))
+		c.log.Error(fmt.Sprintf("limitterService: Check: %s", err.Error()))
 	}
 
 	if !ok {
-		c.log.Error(fmt.Sprintf("LimitterService: Check: %s: %s (hash: %s)", ErrPasswordRateLimitterExceeded, password, pass))
+		c.log.Error(fmt.Sprintf("limitterService: Check: %s: %s (hash: %s)", ErrPasswordRateLimitterExceeded, password, pass))
 		return errors.New(ErrPasswordRateLimitterExceeded)
 	}
 
 	ok, err = c.ipRateLimitter.Check(ctx, ip)
 	if err != nil {
-		c.log.Error(fmt.Sprintf("LimitterService: Check: %s", err.Error()))
+		c.log.Error(fmt.Sprintf("limitterService: Check: %s", err.Error()))
 	}
 
 	if !ok {
-		c.log.Error(fmt.Sprintf("LimitterService: Check: %s: %s", ErrIpRateLimitterExceeded, ip))
-		return errors.New(ErrIpRateLimitterExceeded)
+		c.log.Error(fmt.Sprintf("limitterService: Check: %s: %s", ErrIPRateLimitterExceeded, ip))
+		return errors.New(ErrIPRateLimitterExceeded)
 	}
 
 	return nil
@@ -100,12 +107,12 @@ func (c *LimitterService) Check(ctx context.Context, login string, ip string, pa
 func (c *LimitterService) Remove(ctx context.Context, login string, ip string) error {
 	err := c.loginRateLimitter.Remove(ctx, login)
 	if err != nil {
-		c.log.Error(fmt.Sprintf("LimitterService: Remove: %s: %s", ErrLoginRemoveError, err.Error()))
+		c.log.Error(fmt.Sprintf("limitterService: Remove: %s: %s", ErrLoginRemoveError, err.Error()))
 	}
 
 	err = c.ipRateLimitter.Remove(ctx, ip)
 	if err != nil {
-		c.log.Error(fmt.Sprintf("LimitterService: Remove: %s: %s", ErrIpRemoveError, err.Error()))
+		c.log.Error(fmt.Sprintf("limitterService: Remove: %s: %s", ErrIPRemoveError, err.Error()))
 	}
 
 	return err

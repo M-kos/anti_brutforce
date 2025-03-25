@@ -5,7 +5,7 @@ import "errors"
 var (
 	ErrLoginIsRequired     = errors.New("login is required")
 	ErrPasswordIsRequired  = errors.New("password is required")
-	ErrIpIsRequired        = errors.New("ip is required")
+	ErrIPIsRequired        = errors.New("ip is required")
 	ErrCidrRequired        = errors.New("cidr is required")
 	ErrCheck               = errors.New("check error")
 	ErrRemove              = errors.New("remove error")

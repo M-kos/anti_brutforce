@@ -1,3 +1,5 @@
+version: '2'
+
 run:
   tests: true
   build-tags:
@@ -16,12 +18,36 @@ linters-settings:
           - '!$test'
         allow:
           - $gostd
+          - github.com/stretchr/testify
+          - github.com/stretchr/testify/require
+          - github.com/M-kos/anti_brutforce/internal/services/whitelist-service
+          - github.com/M-kos/anti_brutforce/internal/services/blacklist-service
+          - github.com/M-kos/anti_brutforce/internal/api
+          - github.com/M-kos/anti_brutforce/internal/api/pb
+          - github.com/M-kos/anti_brutforce/internal/config
+          - github.com/M-kos/anti_brutforce/internal/models
+          - github.com/M-kos/anti_brutforce/internal/services/limitter-cli-service
+          - github.com/redis
       Test:
         files:
           - $test
         allow:
           - $gostd
           - github.com/stretchr/testify
+          - github.com/stretchr/testify/require
+          - github.com/M-kos/anti_brutforce/internal/services/whitelist-service
+          - github.com/M-kos/anti_brutforce/internal/services/blacklist-service
+          - github.com/M-kos/anti_brutforce/internal/api
+          - github.com/M-kos/anti_brutforce/internal/api/pb
+          - github.com/M-kos/anti_brutforce/internal/config
+          - github.com/M-kos/anti_brutforce/internal/models
+          - github.com/M-kos/anti_brutforce/internal/services/limitter-cli-service
+          - github.com/redis
+  tagliatelle:
+    case:
+      rules:
+        json: snake
+
 issues:
   exclude-rules:
     - path: _test\.go
@@ -32,10 +58,8 @@ issues:
         - gosec
 
 linters:
-  disable-all: true
   enable:
     - asciicheck
-    - depguard
     - dogsled
     - dupl
     - bodyclose

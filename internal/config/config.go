@@ -15,8 +15,8 @@ type Config struct {
 	IPNumberAttempts       uint          `json:"ip_number_attempts"`
 	GRPCPopt               int           `json:"grpc_port"`
 	Timeout                time.Duration `json:"timeout"`
-	DbHost                 string        `json:"db_host"`
-	DbPort                 string        `json:"db_port"`
+	DBHost                 string        `json:"db_host"`
+	DBPort                 string        `json:"db_port"`
 }
 
 func LoadConfig() *Config {

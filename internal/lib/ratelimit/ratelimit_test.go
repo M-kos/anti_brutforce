@@ -13,13 +13,15 @@ type StubBucket struct {
 	store map[string]models.Bucket
 }
 
-func (b StubBucket) AddItem(ctx context.Context, bucket models.Bucket, expiration time.Duration) error {
+func (b StubBucket) AddItem(ctx context.Context, bucket models.Bucket, _ time.Duration) error {
+	_ = ctx
 	b.store[bucket.Key] = bucket
 
 	return nil
 }
 
 func (b StubBucket) GetItem(ctx context.Context, key string) (*models.Bucket, error) {
+	_ = ctx
 	if v, ok := b.store[key]; ok {
 		return &v, nil
 	}
@@ -28,6 +30,7 @@ func (b StubBucket) GetItem(ctx context.Context, key string) (*models.Bucket, er
 }
 
 func (b StubBucket) RemoveItem(ctx context.Context, key string) error {
+	_ = ctx
 	delete(b.store, key)
 	return nil
 }
