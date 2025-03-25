@@ -60,8 +60,5 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v3
-
       - name: make build
-        run: make build
+        run: make build2

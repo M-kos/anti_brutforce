@@ -10,6 +10,10 @@ build: generate
 	go build -o ./bin/rl ./cmd/limitter/main.go
 	go build -o ./bin/rl-cli ./cmd/limitter-cli/main.go
 
+build2: generate2
+	go build -o ./bin/rl ./cmd/limitter/main.go
+	go build -o ./bin/rl-cli ./cmd/limitter-cli/main.go
+
 run:
 	go run ./cmd/limitter/main.go
 
@@ -46,7 +50,21 @@ tidy:
 	rm bin/protoc-gen-go
 	rm bin/protoc-gen-go-grpc
 
+.proto-generate2:
+	rm -rf internal/api/pb
+	mkdir -p internal/api/pb
+
+	protoc --proto_path=$(CURDIR) \
+		--go_out=$(CURDIR)/internal/api/pb \
+		--go-grpc_out=$(CURDIR)/internal/api/pb \
+		$(CURDIR)/internal/api/proto/*.proto
+
+	rm bin/protoc-gen-go
+	rm bin/protoc-gen-go-grpc
+
 generate: .deps .proto-generate tidy
+
+generate2: .proto-generate2 tidy
 
 docker-redis-up:
 	REDIS_PASSWORD=$(REDIS_PASSWORD) REDIS_USER=$(REDIS_USER) REDIS_USER_PASSWORD=$(REDIS_USER_PASSWORD) docker-compose -f ./docker/redis/docker-compose.yaml up -d
