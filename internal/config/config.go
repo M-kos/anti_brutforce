@@ -19,17 +19,22 @@ type Config struct {
 	DBPort                 string        `json:"db_port"`
 }
 
-func LoadConfig() *Config {
+const defaultPath = "../../configs/config.json"
+
+func LoadConfig() (*Config, error) {
+	path := defaultPath
 	err := godotenv.Load()
+
 	if err != nil {
 		log.Println("error loading .env file, using default config")
+	} else {
+		path = os.Getenv("CONFIG_PATH")
 	}
-
-	path := os.Getenv("CONFIG_PATH")
 
 	file, err := os.ReadFile(path)
 	if err != nil {
 		log.Fatal(err)
+		return nil, err
 	}
 
 	var conf Config
@@ -37,7 +42,8 @@ func LoadConfig() *Config {
 	err = json.Unmarshal(file, &conf)
 	if err != nil {
 		log.Println(err)
+		return nil, err
 	}
 
-	return &conf
+	return &conf, nil
 }

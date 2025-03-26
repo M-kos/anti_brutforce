@@ -14,20 +14,24 @@ type ClientAPI struct {
 	Conn *grpc.ClientConn
 }
 
-func NewClient(conf *config.Config) *ClientAPI {
+func NewClient(conf *config.Config) (*ClientAPI, error) {
 	conn, err := grpc.NewClient(
 		fmt.Sprintf("%s:%d", "localhost", conf.GRPCPopt),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	client := pb.NewAntiBruteforceClient(conn)
 
-	return &ClientAPI{Pb: client, Conn: conn}
+	return &ClientAPI{Pb: client, Conn: conn}, nil
 }
 
 func (c *ClientAPI) Close() {
+	if c.Conn == nil {
+		return
+	}
+
 	c.Conn.Close()
 }

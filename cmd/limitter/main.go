@@ -11,9 +11,8 @@ import (
 	"github.com/M-kos/anti_brutforce/internal/db"
 	"github.com/M-kos/anti_brutforce/internal/lib/logger"
 	"github.com/M-kos/anti_brutforce/internal/lib/ratelimit"
-	blacklistservice "github.com/M-kos/anti_brutforce/internal/services/blacklist-service"
+	labellistservice "github.com/M-kos/anti_brutforce/internal/services/label-list-service"
 	limitterservice "github.com/M-kos/anti_brutforce/internal/services/limitter-service"
-	whitelistservice "github.com/M-kos/anti_brutforce/internal/services/whitelist-service"
 )
 
 func main() {
@@ -28,16 +27,29 @@ func main() {
 }
 
 func run() {
-	conf := config.LoadConfig()
 	l := logger.NewLogger()
+	conf, err := config.LoadConfig()
+	if err != nil {
+		l.Error("error while creating client: ", err)
+		return
+	}
+
 	redis := db.NewRedisDB(conf, l)
 
 	loginRateLimitter := ratelimit.NewRateLimiter(conf.LoginNumberAttempts, conf.Timeout, redis)
 	passwordRateLimitter := ratelimit.NewRateLimiter(conf.PasswordNumberAttempts, conf.Timeout, redis)
 	ipRateLimitter := ratelimit.NewRateLimiter(conf.IPNumberAttempts, conf.Timeout, redis)
 
-	whitelabelList := whitelistservice.NewWhitelist(whitelistservice.NewWhitelistRepository(redis), l)
-	blacklabelList := blacklistservice.NewBlacklist(blacklistservice.NewBlacklistRepository(redis), l)
+	whitelabelList := labellistservice.NewLabelListService(
+		labellistservice.NewLabelListRepository(redis, labellistservice.WhitelistKey),
+		l,
+		labellistservice.WhitelistKey,
+	)
+	blacklabelList := labellistservice.NewLabelListService(
+		labellistservice.NewLabelListRepository(redis, labellistservice.BlacklistKey),
+		l,
+		labellistservice.BlacklistKey,
+	)
 
 	limitterService := limitterservice.NewLimitterService(
 		loginRateLimitter,
@@ -48,7 +60,7 @@ func run() {
 		l,
 	)
 
-	err := api.Run(conf, limitterService, whitelabelList, blacklabelList, l)
+	err = api.Run(conf, limitterService, whitelabelList, blacklabelList, l)
 	if err != nil {
 		l.Error(err.Error())
 	}

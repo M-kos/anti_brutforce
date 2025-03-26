@@ -16,9 +16,18 @@ func main() {
 		return
 	}
 
-	conf := config.LoadConfig()
 	l := logger.NewLogger()
-	client := api.NewClient(conf)
+	conf, err := config.LoadConfig()
+	if err != nil {
+		l.Error("error while loading config: ", err)
+		return
+	}
+
+	client, err := api.NewClient(conf)
+	if err != nil {
+		l.Error("error while creating client: ", err)
+		return
+	}
 
 	defer client.Close()
 

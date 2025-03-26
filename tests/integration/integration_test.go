@@ -16,19 +16,18 @@ import (
 	"github.com/M-kos/anti_brutforce/internal/lib/logger"
 	"github.com/M-kos/anti_brutforce/internal/lib/ratelimit"
 	"github.com/M-kos/anti_brutforce/internal/models"
-	blacklistservice "github.com/M-kos/anti_brutforce/internal/services/blacklist-service"
+	labellistservice "github.com/M-kos/anti_brutforce/internal/services/label-list-service"
 	limitterservice "github.com/M-kos/anti_brutforce/internal/services/limitter-service"
-	whitelistservice "github.com/M-kos/anti_brutforce/internal/services/whitelist-service"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/suite"
 )
 
 type LimitterSuite struct {
 	suite.Suite
-	server          *api.ServerApi
-	redis           *db.RedisDb
-	whitelabelList  *whitelistservice.WhitelistService
-	blacklabelList  *blacklistservice.BlacklistService
+	server          *api.ServerAPI
+	redis           *db.RedisDB
+	whitelabelList  *labellistservice.LabelListService
+	blacklabelList  *labellistservice.LabelListService
 	limitterService *limitterservice.LimitterService
 	ctx             context.Context
 }
@@ -42,7 +41,7 @@ func (s *LimitterSuite) SetupSuite() {
 	_ = json.Unmarshal(file, &conf)
 
 	l := logger.NewLogger()
-	redis := db.NewRedisDb(&conf, l)
+	redis := db.NewRedisDB(&conf, l)
 
 	s.redis = redis
 
@@ -50,8 +49,16 @@ func (s *LimitterSuite) SetupSuite() {
 	passwordRateLimitter := ratelimit.NewRateLimiter(conf.PasswordNumberAttempts, conf.Timeout, redis)
 	ipRateLimitter := ratelimit.NewRateLimiter(conf.IPNumberAttempts, conf.Timeout, redis)
 
-	whitelabelList := whitelistservice.NewWhitelist(whitelistservice.NewWhitelistRepository(redis), l)
-	blacklabelList := blacklistservice.NewBlacklist(blacklistservice.NewBlacklistRepository(redis), l)
+	whitelabelList := labellistservice.NewLabelListService(
+		labellistservice.NewLabelListRepository(redis, labellistservice.WhitelistKey),
+		l,
+		labellistservice.WhitelistKey,
+	)
+	blacklabelList := labellistservice.NewLabelListService(
+		labellistservice.NewLabelListRepository(redis, labellistservice.BlacklistKey),
+		l,
+		labellistservice.BlacklistKey,
+	)
 
 	s.whitelabelList = whitelabelList
 	s.blacklabelList = blacklabelList
@@ -60,7 +67,7 @@ func (s *LimitterSuite) SetupSuite() {
 
 	s.limitterService = limitterService
 
-	server := api.NewServerApi(limitterService, whitelabelList, blacklabelList, l)
+	server := api.NewServerAPI(limitterService, whitelabelList, blacklabelList, l)
 	s.server = server
 
 	s.ctx = context.Background()
@@ -122,7 +129,7 @@ func (s *LimitterSuite) TestCheckWhenItemExistAndAtttempsHaveEnded() {
 func (s *LimitterSuite) TestCheckWhenItemIsInWhitelabelList() {
 	item := s.addDefaultBucketToDB()
 
-	s.addDefaultListToDB(whitelistservice.WhitelistKey)
+	s.addDefaultListToDB(labellistservice.WhitelistKey)
 
 	res, err := s.server.CheckCredentials(s.ctx, &pb.CheckCredentialsRequest{Login: item.Key, Password: "12345", Ip: "127.0.0.1"})
 	s.Require().NoError(err)
@@ -137,7 +144,7 @@ func (s *LimitterSuite) TestCheckWhenItemIsInWhitelabelList() {
 func (s *LimitterSuite) TestCheckWhenItemIsInBlacklabelList() {
 	item := s.addDefaultBucketToDB()
 
-	s.addDefaultListToDB(blacklistservice.BlacklistKey)
+	s.addDefaultListToDB(labellistservice.BlacklistKey)
 
 	res, err := s.server.CheckCredentials(s.ctx, &pb.CheckCredentialsRequest{Login: item.Key, Password: "12345", Ip: "127.0.0.1"})
 	s.Require().Error(err)
@@ -175,19 +182,19 @@ func (s *LimitterSuite) TestAddToWhitelabelList() {
 	s.Require().NoError(err)
 	s.Require().Equal(res, &pb.OkResponse{Ok: true})
 
-	l := s.getListFromDB(whitelistservice.WhitelistKey)
+	l := s.getListFromDB(labellistservice.WhitelistKey)
 	s.Require().Equal(l.Values, list.Values)
 }
 
 func (s *LimitterSuite) TestRemoveFromWhitelabelList() {
-	s.addDefaultListToDB(whitelistservice.WhitelistKey)
+	s.addDefaultListToDB(labellistservice.WhitelistKey)
 
 	res, err := s.server.RemoveFromWhitelist(s.ctx, &pb.WhitelistRequest{Cidr: "127.0.0.1/24"})
 
 	s.Require().NoError(err)
 	s.Require().Equal(res, &pb.OkResponse{Ok: true})
 
-	l := s.getListFromDB(whitelistservice.WhitelistKey)
+	l := s.getListFromDB(labellistservice.WhitelistKey)
 	s.Require().Equal(l.Values, []string{})
 }
 
@@ -199,19 +206,19 @@ func (s *LimitterSuite) TestAddToBlacklabelList() {
 	s.Require().NoError(err)
 	s.Require().Equal(res, &pb.OkResponse{Ok: true})
 
-	l := s.getListFromDB(blacklistservice.BlacklistKey)
+	l := s.getListFromDB(labellistservice.BlacklistKey)
 	s.Require().Equal(l.Values, list.Values)
 }
 
 func (s *LimitterSuite) TestRemoveFromBlacklabelList() {
-	s.addDefaultListToDB(blacklistservice.BlacklistKey)
+	s.addDefaultListToDB(labellistservice.BlacklistKey)
 
 	res, err := s.server.RemoveFromBlacklist(s.ctx, &pb.BlacklistRequest{Cidr: "127.0.0.1/24"})
 
 	s.Require().NoError(err)
 	s.Require().Equal(res, &pb.OkResponse{Ok: true})
 
-	l := s.getListFromDB(blacklistservice.BlacklistKey)
+	l := s.getListFromDB(labellistservice.BlacklistKey)
 	s.Require().Equal(l.Values, []string{})
 }
 
