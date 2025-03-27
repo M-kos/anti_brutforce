@@ -1,0 +1,73 @@
+name: Anti Bruteforce
+
+on:
+  push:
+    branches:
+      - feature*
+      - fix*
+
+env:
+  GO111MODULE: 'on'
+
+jobs:
+  lint:
+    name: Run Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ~1.23
+
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: install deps
+        run: sudo apt update && sudo apt install -y protobuf-compiler
+
+      - name: make generate
+        run: make generate
+
+      - name: Linters
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.63.4
+
+  tests:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ^1.23
+
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: install deps
+        run: sudo apt update && sudo apt install -y protobuf-compiler
+
+      - name: make generate
+        run: make generate
+
+      - name: Unit tests
+        run: go test ./... -race -count 100
+
+  build:
+    name: Build by Makefile
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ^1.23
+
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: install deps
+        run: sudo apt update && sudo apt install -y protobuf-compiler
+
+      - name: make build
+        run: make build

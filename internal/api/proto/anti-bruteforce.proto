@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package anti_bruteforce;
+option go_package = "./;pb";
+
+
+import "internal/api/proto/common.proto";
+
+service AntiBruteforce {
+    rpc CheckCredentials (CheckCredentialsRequest) returns (common.OkResponse);
+    rpc ResetBuckets (ResetBucketsRequest) returns (common.OkResponse);
+    rpc AddToWhitelist (WhitelistRequest) returns (common.OkResponse);
+    rpc RemoveFromWhitelist (WhitelistRequest) returns (common.OkResponse);
+    rpc AddToBlacklist (BlacklistRequest) returns (common.OkResponse);
+    rpc RemoveFromBlacklist (BlacklistRequest) returns (common.OkResponse);
+}
+
+message CheckCredentialsRequest {
+    string login = 1;
+    string password = 2;
+    string ip = 3;
+}
+
+message ResetBucketsRequest {
+    string login = 1;
+    string ip = 2;
+}
+
+message WhitelistRequest {
+  string cidr = 1;
+}
+
+message BlacklistRequest {
+  string cidr = 1;
+}

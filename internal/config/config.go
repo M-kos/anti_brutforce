@@ -1,0 +1,49 @@
+package config
+
+import (
+	"encoding/json"
+	"log"
+	"os"
+	"time"
+
+	"github.com/joho/godotenv"
+)
+
+type Config struct {
+	LoginNumberAttempts    uint          `json:"login_number_attempts"`
+	PasswordNumberAttempts uint          `json:"password_number_attempts"`
+	IPNumberAttempts       uint          `json:"ip_number_attempts"`
+	GRPCPopt               int           `json:"grpc_port"`
+	Timeout                time.Duration `json:"timeout"`
+	DBHost                 string        `json:"db_host"`
+	DBPort                 string        `json:"db_port"`
+}
+
+const defaultPath = "../../configs/config.json"
+
+func LoadConfig() (*Config, error) {
+	path := defaultPath
+	err := godotenv.Load()
+
+	if err != nil {
+		log.Println("error loading .env file, using default config")
+	} else {
+		path = os.Getenv("CONFIG_PATH")
+	}
+
+	file, err := os.ReadFile(path)
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+
+	var conf Config
+
+	err = json.Unmarshal(file, &conf)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return &conf, nil
+}
